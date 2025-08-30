@@ -63,7 +63,7 @@ class AppTheme {
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: const Color(0xFF111827),
         selectedItemColor: scheme.primary,
-        unselectedItemColor: Colors.white.withValues(alpha: 0.6),
+        unselectedItemColor: Colors.white.withOpacity(0.6),
         type: BottomNavigationBarType.fixed,
         showUnselectedLabels: true,
       ),
@@ -73,13 +73,13 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: accent.withValues(alpha: 0.08)),
+          side: BorderSide(color: accent.withOpacity(0.08)),
         ),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
 
       dividerTheme: DividerThemeData(
-        color: Colors.white.withValues(alpha: 0.06),
+        color: Colors.white.withOpacity(0.06),
         thickness: 1,
         space: 0,
       ),
@@ -102,12 +102,12 @@ class AppTheme {
         ),
       ),
 
-      iconTheme: IconThemeData(color: scheme.onSurface.withValues(alpha: 0.9)),
+      iconTheme: IconThemeData(color: scheme.onSurface.withOpacity(0.9)),
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
-          foregroundColor: scheme.onSurface.withValues(alpha: 0.9),
-          disabledForegroundColor: scheme.onSurface.withValues(alpha: 0.38),
-          hoverColor: scheme.primary.withValues(alpha: 0.08),
+          foregroundColor: scheme.onSurface.withOpacity(0.9),
+          disabledForegroundColor: scheme.onSurface.withOpacity(0.38),
+          hoverColor: scheme.primary.withOpacity(0.08),
         ),
       ),
       textTheme: const TextTheme(

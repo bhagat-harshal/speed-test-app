@@ -4,8 +4,31 @@ import 'package:get/get.dart';
 import '../controllers/history_controller.dart';
 import '../models/speed_result.dart';
 
-class HistoryScreen extends StatelessWidget {
+class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
+
+  @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen> {
+  bool _wasVisible = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // Check if this screen is currently visible in the IndexedStack
+    final isVisible = ModalRoute.of(context)?.isCurrent ?? false;
+    
+    if (isVisible && !_wasVisible) {
+      // Screen just became visible, trigger refresh
+      final ctrl = Get.find<HistoryController>();
+      ctrl.refreshList();
+    }
+    
+    _wasVisible = isVisible;
+  }
 
   String _formatTs(DateTime dt) {
     final d = dt.toLocal();

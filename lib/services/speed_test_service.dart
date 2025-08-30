@@ -103,15 +103,39 @@ class SpeedTestService {
     final sw = Stopwatch()..start();
     try {
       // Since http.post doesn't expose streamed progress easily,
-      // we approximate progress assuming linear upload over elapsed time.
+      // we use a more conservative progress estimation
       final postFuture = _client.post(uri, body: data).timeout(timeout);
+      
+      // Track the maximum realistic speed to avoid unrealistic spikes
+      double maxRealisticSpeed = 0;
+      
       // Emit periodic progress ticks
       final timer = Timer.periodic(const Duration(milliseconds: 150), (_) {
         if (onProgress != null) {
           final sec = max(sw.elapsedMicroseconds / 1e6, 0.001);
-          // optimistic linear estimate: bytes/elapsed
-          final mbps = (bytes * 8) / (1e6 * max(sec, 0.001));
-          onProgress(mbps);
+          
+          // Use a more conservative estimate: assume linear progress but cap at reasonable values
+          // For the first few seconds, use a gradual ramp-up to avoid unrealistic spikes
+          double estimatedMbps;
+          
+          if (sec < 0.5) {
+            // Very early in the upload, be very conservative - assume 10% progress
+            estimatedMbps = min(10.0, (bytes * 8 * 0.1) / (1e6 * sec));
+          } else if (sec < 2.0) {
+            // Ramping up phase - assume 50% progress
+            estimatedMbps = min(50.0, (bytes * 8 * 0.5) / (1e6 * sec));
+          } else {
+            // Steady state - use actual elapsed time but be conservative
+            estimatedMbps = min(1000.0, (bytes * 8) / (1e6 * sec));
+          }
+          
+          // Only update if this is a reasonable increase from previous max
+          if (estimatedMbps > maxRealisticSpeed * 1.5) {
+            estimatedMbps = maxRealisticSpeed * 1.5;
+          }
+          
+          maxRealisticSpeed = max(maxRealisticSpeed, estimatedMbps);
+          onProgress(estimatedMbps);
         }
       });
       await postFuture;

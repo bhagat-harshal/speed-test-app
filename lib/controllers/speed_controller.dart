@@ -23,7 +23,7 @@ class SpeedController extends GetxController {
 
   // Shown on the gauge while running (instantaneous)
   final gaugeMbps = 0.0.obs;
-  final gaugeMax = 100.0
+  final gaugeMax = 10.0
       .obs; // dynamic range; will expand based on observed speed to keep UI useful
 
   Future<void> initDb() async {
@@ -94,15 +94,46 @@ class SpeedController extends GetxController {
   }
 
   double _roundUpScale(double v) {
-    // Round up to a pleasant scale for a dial (20, 50, 100, 200, 500, etc.)
-    if (v <= 0) return 10;
+    // Round up to a pleasant scale for a dial, with more granular steps for small values
+    if (v <= 0) return 5;
+    
+    // Handle very small values (less than 1 Mbps) with fine granularity
+    if (v < 1) {
+      if (v <= 0.1) return 0.2;
+      if (v <= 0.2) return 0.5;
+      if (v <= 0.5) return 1.0;
+      return 2.0;
+    }
+    
+    // Handle small values (1-10 Mbps) with medium granularity
+    if (v < 10) {
+      if (v <= 1) return 2.0;
+      if (v <= 2) return 5.0;
+      if (v <= 5) return 10.0;
+      return 10.0;
+    }
+    
+    // Debug: Print the value to see what's happening
+    print('_roundUpScale called with v: $v');
+    
+    // For larger values, use the original pleasant scale logic
     final exp = (log(v) / log(10)).floor();
     final base = pow(10, exp);
     final candidates = [1, 2, 5, 10].map((m) => m * base).toList();
+    
+    // Debug: Print the calculated values
+    print('exp: $exp, base: $base, candidates: $candidates');
+    
     for (final c in candidates) {
-      if (v <= c) return c.toDouble();
+      if (v <= c) {
+        print('Returning: $c');
+        return c.toDouble();
+      }
     }
-    return (10 * base).toDouble();
+    
+    final result = (10 * base).toDouble();
+    print('Returning final: $result');
+    return result;
   }
 
   @override
